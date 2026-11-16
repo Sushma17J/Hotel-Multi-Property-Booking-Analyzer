@@ -1,3 +1,4 @@
+
 import re
 from datetime import date, timedelta
 
@@ -9,148 +10,187 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.exc import IntegrityError
 
 
-# ============================================================
+# =========================================================
 # 1. PAGE CONFIGURATION
-# ============================================================
+# =========================================================
 
 st.set_page_config(
-    page_title="Hotel Analyzer | Management Platform",
+    page_title="Hotel Analyzer",
     page_icon="🏨",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 
-# ============================================================
-# 2. MODERN DESIGN
-# ============================================================
+# =========================================================
+# 2. MODERN DESIGN - READABLE COLOURS AND TEXT
+# =========================================================
 
 st.markdown("""
 <style>
 
-/* Main background */
+/* Main page */
 .stApp {
-    background: #f4f7fc;
-    color: #172033;
-    font-family: 'Inter', 'Segoe UI', sans-serif;
+    background-color: #f5f7fb;
+    color: #172b4d;
+    font-family: "Segoe UI", Arial, sans-serif;
 }
 
-/* Main content */
 .block-container {
     max-width: 1500px;
     padding-top: 2rem;
     padding-bottom: 3rem;
 }
 
-/* Hide Streamlit branding */
-#MainMenu {
-    visibility: hidden;
+/* Make main page text readable */
+.stApp,
+.stApp p,
+.stApp label,
+.stApp span,
+.stApp div[data-testid="stMarkdownContainer"] p,
+.stApp div[data-testid="stMarkdownContainer"] li {
+    color: #26364f;
 }
 
-footer {
-    visibility: hidden;
+/* Headings */
+h1, h2, h3, h4 {
+    color: #142b50 !important;
+    font-weight: 750 !important;
+}
+
+h1 {
+    font-size: 32px !important;
+}
+
+h2 {
+    font-size: 25px !important;
+}
+
+h3 {
+    font-size: 20px !important;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"] {
     background: #14213d;
-    border-right: 1px solid #253654;
+    border-right: 1px solid #263b5b;
 }
 
-section[data-testid="stSidebar"] * {
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] div {
     color: #f1f5ff;
 }
 
 section[data-testid="stSidebar"] div[role="radiogroup"] {
-    gap: 9px;
+    gap: 8px;
 }
 
 section[data-testid="stSidebar"] div[role="radiogroup"] label {
     background: #1d3153;
-    border: 1px solid #2b4165;
-    padding: 11px 13px;
+    border: 1px solid #33496d;
     border-radius: 10px;
-    transition: all 0.2s ease;
+    padding: 10px 12px;
+    margin-bottom: 3px;
 }
 
 section[data-testid="stSidebar"] div[role="radiogroup"] label:hover {
     background: #2b4773;
-    border-color: #6095e5;
 }
 
-/* Headings */
-h1 {
-    color: #172b4d !important;
-    font-weight: 750 !important;
-    letter-spacing: -1px;
-}
-
-h2, h3 {
-    color: #20385e !important;
-    font-weight: 650 !important;
+/* Sidebar radio text */
+section[data-testid="stSidebar"] div[role="radiogroup"] label p {
+    color: #ffffff !important;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 /* Metric cards */
 div[data-testid="stMetric"] {
     background: #ffffff;
-    border: 1px solid #e3eaf4;
+    border: 1px solid #dce5f1;
     border-radius: 15px;
     padding: 19px;
-    min-height: 112px;
-    box-shadow: 0 4px 15px rgba(22, 40, 75, 0.045);
+    min-height: 115px;
+    box-shadow: 0 4px 14px rgba(20, 43, 80, 0.06);
 }
 
-div[data-testid="stMetricLabel"] {
-    color: #64748b;
-    font-size: 14px;
-    font-weight: 600;
+div[data-testid="stMetricLabel"],
+div[data-testid="stMetricLabel"] p {
+    color: #52647e !important;
+    font-size: 14px !important;
+    font-weight: 650 !important;
 }
 
-div[data-testid="stMetricValue"] {
-    color: #2459a6;
-    font-size: 28px;
-    font-weight: 750;
-}
-
-/* Buttons */
-.stButton > button,
-.stFormSubmitButton > button {
-    background: #2459a6;
-    color: white;
-    border: 1px solid #2459a6;
-    border-radius: 10px;
-    padding: 10px 18px;
-    font-weight: 650;
-    transition: all 0.2s ease;
-}
-
-.stButton > button:hover,
-.stFormSubmitButton > button:hover {
-    background: #173f7b;
-    color: white;
-    border-color: #173f7b;
+div[data-testid="stMetricValue"],
+div[data-testid="stMetricValue"] div {
+    color: #174a88 !important;
+    font-size: 28px !important;
+    font-weight: 750 !important;
 }
 
 /* Inputs */
+.stTextInput label,
+.stSelectbox label,
+.stDateInput label,
+.stNumberInput label,
+.stTextArea label {
+    color: #253b5b !important;
+    font-weight: 650 !important;
+    font-size: 14px !important;
+}
+
 .stTextInput input,
 .stNumberInput input,
-.stDateInput input,
+.stDateInput input {
+    background: #ffffff !important;
+    color: #172b4d !important;
+    border: 1px solid #cbd7e6 !important;
+    border-radius: 9px !important;
+}
+
+/* Select boxes */
 .stSelectbox div[data-baseweb="select"] {
-    border-radius: 9px;
+    background: #ffffff !important;
+    border-radius: 9px !important;
+}
+
+.stSelectbox div[data-baseweb="select"] * {
+    color: #172b4d !important;
 }
 
 /* Forms */
 div[data-testid="stForm"] {
     background: #ffffff;
-    padding: 22px;
-    border: 1px solid #e3eaf4;
+    padding: 24px;
+    border: 1px solid #dce5f1;
     border-radius: 16px;
-    box-shadow: 0 4px 18px rgba(22, 40, 75, 0.04);
+    box-shadow: 0 4px 15px rgba(20, 43, 80, 0.05);
+}
+
+/* Buttons */
+.stButton > button,
+.stFormSubmitButton > button {
+    background: #2459a6 !important;
+    color: #ffffff !important;
+    border: 1px solid #2459a6 !important;
+    border-radius: 10px !important;
+    padding: 10px 18px !important;
+    font-weight: 700 !important;
+}
+
+.stButton > button:hover,
+.stFormSubmitButton > button:hover {
+    background: #173f7b !important;
+    border-color: #173f7b !important;
+    color: #ffffff !important;
 }
 
 /* Tables */
 div[data-testid="stDataFrame"] {
-    border: 1px solid #e3eaf4;
+    background: #ffffff;
+    border: 1px solid #dce5f1;
     border-radius: 12px;
     overflow: hidden;
 }
@@ -162,23 +202,32 @@ div[data-testid="stAlert"] {
 
 /* Dividers */
 hr {
-    border-color: #e3eaf4;
+    border-color: #dce5f1;
     margin-top: 22px;
     margin-bottom: 22px;
 }
 
-/* Responsive */
+/* Hide Streamlit branding */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+/* Mobile */
 @media (max-width: 768px) {
     .block-container {
         padding: 1rem;
     }
 
     h1 {
-        font-size: 27px !important;
+        font-size: 26px !important;
     }
 
     div[data-testid="stMetric"] {
-        padding: 13px;
+        padding: 12px;
     }
 }
 
@@ -186,9 +235,9 @@ hr {
 """, unsafe_allow_html=True)
 
 
-# ============================================================
+# =========================================================
 # 3. DATABASE CONNECTION
-# ============================================================
+# =========================================================
 
 @st.cache_resource
 def get_engine():
@@ -204,16 +253,13 @@ def get_engine():
 
     return create_engine(
         database_url,
-        pool_pre_ping=True,
-        pool_size=5,
-        max_overflow=5
+        pool_pre_ping=True
     )
 
 
 def load_data(query, params=None):
 
     with get_engine().connect() as connection:
-
         return pd.read_sql(
             text(query),
             connection,
@@ -221,9 +267,9 @@ def load_data(query, params=None):
         )
 
 
-# ============================================================
+# =========================================================
 # 4. COMMON UI FUNCTIONS
-# ============================================================
+# =========================================================
 
 def page_header(title, subtitle, icon="🏨"):
 
@@ -231,12 +277,12 @@ def page_header(title, subtitle, icon="🏨"):
         f"""
         <div style="
             background: linear-gradient(115deg, #142b50, #2459a6);
-            padding: 27px 30px;
-            border-radius: 17px;
+            padding: 28px 30px;
+            border-radius: 16px;
             margin-bottom: 25px;
         ">
             <div style="
-                color: #b9d5ff;
+                color: #d4e5ff;
                 font-size: 12px;
                 font-weight: 700;
                 letter-spacing: 2px;
@@ -245,18 +291,18 @@ def page_header(title, subtitle, icon="🏨"):
             </div>
 
             <div style="
-                color: white;
+                color: #ffffff;
                 font-size: 29px;
                 font-weight: 750;
-                margin-top: 7px;
+                margin-top: 8px;
             ">
                 {icon} {title}
             </div>
 
             <div style="
-                color: #e0ebff;
-                font-size: 14px;
-                margin-top: 7px;
+                color: #f0f5ff;
+                font-size: 15px;
+                margin-top: 8px;
             ">
                 {subtitle}
             </div>
@@ -275,32 +321,29 @@ def show_error(message, error=None):
             st.code(str(error))
 
 
-# ============================================================
-# 5. SIDEBAR NAVIGATION
-# ============================================================
+# =========================================================
+# 5. SIDEBAR
+# =========================================================
 
-st.sidebar.markdown(
-    """
-    <div style="padding: 12px 5px 22px 5px;">
-        <div style="font-size: 30px;">🏨</div>
-        <div style="
-            font-size: 21px;
-            font-weight: 750;
-            color: white;
-        ">
-            HOTEL ANALYZER
-        </div>
-        <div style="
-            font-size: 11px;
-            color: #b9c9e3;
-            letter-spacing: 1px;
-        ">
-            MANAGEMENT PLATFORM
-        </div>
+st.sidebar.markdown("""
+<div style="padding: 12px 5px 20px 5px;">
+    <div style="font-size: 32px;">🏨</div>
+    <div style="
+        font-size: 21px;
+        font-weight: 750;
+        color: #ffffff;
+    ">
+        HOTEL ANALYZER
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    <div style="
+        font-size: 11px;
+        color: #d4e5ff;
+        letter-spacing: 1px;
+    ">
+        MANAGEMENT PLATFORM
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 page = st.sidebar.radio(
     "MAIN MENU",
@@ -317,33 +360,30 @@ page = st.sidebar.radio(
 
 st.sidebar.divider()
 
-st.sidebar.markdown(
-    """
-    <div style="
-        background: #1d3153;
-        border: 1px solid #334c72;
-        border-radius: 11px;
-        padding: 13px;
-    ">
-        <div style="font-weight: 650;">Database Status</div>
-        <div style="color: #86efac; font-size: 13px;">
-            ● Neon PostgreSQL
-        </div>
+st.sidebar.markdown("""
+<div style="
+    background: #1d3153;
+    border: 1px solid #40577c;
+    border-radius: 10px;
+    padding: 13px;
+">
+    <div style="color: white; font-weight: 700;">
+        Database Status
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    <div style="color: #a7f3d0; font-size: 13px;">
+        ● Neon PostgreSQL
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 st.sidebar.divider()
 
-st.sidebar.caption(
-    "Built with Python · PostgreSQL · Streamlit"
-)
+st.sidebar.caption("Python | PostgreSQL | Streamlit")
 
 
-# ============================================================
-# 6. CHECK DATABASE CONNECTION
-# ============================================================
+# =========================================================
+# 6. DATABASE CHECK
+# =========================================================
 
 try:
 
@@ -355,64 +395,62 @@ try:
 except Exception as e:
 
     show_error(
-        "Database connection failed. Check your Neon credentials "
-        "in Streamlit Cloud → App Settings → Secrets.",
+        "Database connection failed. Check Streamlit Secrets.",
         e
     )
 
     st.stop()
 
 
-# ============================================================
+# =========================================================
 # 7. DASHBOARD
-# ============================================================
+# =========================================================
 
 if page == "Dashboard":
 
     page_header(
         "Welcome to Hotel Analyzer",
-        "Manage properties, rooms, customers and reservations "
+        "Manage hotels, rooms, customers and reservations "
         "from one centralized dashboard.",
         "🏨"
     )
 
     try:
 
-        total_hotels = load_data("""
-            SELECT COUNT(*) AS total FROM hotels
-        """).iloc[0]["total"]
+        total_hotels = load_data(
+            "SELECT COUNT(*) AS total FROM hotels"
+        ).iloc[0]["total"]
 
-        total_rooms = load_data("""
-            SELECT COUNT(*) AS total FROM rooms
-        """).iloc[0]["total"]
+        total_rooms = load_data(
+            "SELECT COUNT(*) AS total FROM rooms"
+        ).iloc[0]["total"]
 
-        total_customers = load_data("""
-            SELECT COUNT(*) AS total FROM customers
-        """).iloc[0]["total"]
+        total_customers = load_data(
+            "SELECT COUNT(*) AS total FROM customers"
+        ).iloc[0]["total"]
 
-        total_bookings = load_data("""
-            SELECT COUNT(*) AS total FROM bookings
-        """).iloc[0]["total"]
+        total_bookings = load_data(
+            "SELECT COUNT(*) AS total FROM bookings"
+        ).iloc[0]["total"]
 
-        confirmed_bookings = load_data("""
+        confirmed = load_data("""
             SELECT COUNT(*) AS total
             FROM bookings
             WHERE status = 'confirmed'
         """).iloc[0]["total"]
 
-        cancelled_bookings = load_data("""
-            SELECT COUNT(*) AS total
-            FROM bookings
-            WHERE status = 'cancelled'
-        """).iloc[0]["total"]
-
-        pending_bookings = load_data("""
+        pending = load_data("""
             SELECT COUNT(*) AS total
             FROM bookings
             WHERE status = 'pending'
         """).iloc[0]["total"]
 
-        # Overview
+        cancelled = load_data("""
+            SELECT COUNT(*) AS total
+            FROM bookings
+            WHERE status = 'cancelled'
+        """).iloc[0]["total"]
+
         st.subheader("Platform Overview")
 
         col1, col2, col3, col4 = st.columns(4)
@@ -431,35 +469,24 @@ if page == "Dashboard":
 
         st.divider()
 
-        # Booking status
         st.subheader("Booking Status")
 
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            st.metric(
-                "Confirmed",
-                f"{int(confirmed_bookings):,}"
-            )
+            st.metric("Confirmed", f"{int(confirmed):,}")
 
         with col2:
-            st.metric(
-                "Pending",
-                f"{int(pending_bookings):,}"
-            )
+            st.metric("Pending", f"{int(pending):,}")
 
         with col3:
-            st.metric(
-                "Cancelled",
-                f"{int(cancelled_bookings):,}"
-            )
+            st.metric("Cancelled", f"{int(cancelled):,}")
 
         st.divider()
 
-        # Recent bookings
         st.subheader("Recent Bookings")
 
-        recent_bookings = load_data("""
+        recent = load_data("""
             SELECT
                 b.booking_id,
                 c.customer_name,
@@ -470,34 +497,30 @@ if page == "Dashboard":
                 b.check_out,
                 b.status
             FROM bookings b
-            JOIN customers c
-                ON b.customer_id = c.customer_id
-            JOIN rooms r
-                ON b.room_id = r.room_id
-            JOIN hotels h
-                ON r.hotel_id = h.hotel_id
+            JOIN customers c ON b.customer_id = c.customer_id
+            JOIN rooms r ON b.room_id = r.room_id
+            JOIN hotels h ON r.hotel_id = h.hotel_id
             ORDER BY b.booking_id DESC
             LIMIT 8
         """)
 
-        if recent_bookings.empty:
+        if recent.empty:
             st.info("No bookings found.")
 
         else:
             st.dataframe(
-                recent_bookings,
-                width="stretch",
+                recent,
+                use_container_width=True,
                 hide_index=True
             )
 
     except Exception as e:
-
         show_error("Unable to load dashboard.", e)
 
 
-# ============================================================
+# =========================================================
 # 8. HOTEL MANAGEMENT
-# ============================================================
+# =========================================================
 
 elif page == "Hotel Management":
 
@@ -527,13 +550,13 @@ elif page == "Hotel Management":
 
         st.dataframe(
             df,
-            width="stretch",
+            use_container_width=True,
             hide_index=True
         )
 
         st.divider()
 
-        st.subheader("Properties by City")
+        st.subheader("Hotels by City")
 
         city_data = (
             df.groupby("city")
@@ -554,29 +577,24 @@ elif page == "Hotel Management":
         fig.update_layout(
             xaxis_title="City",
             yaxis_title="Number of Hotels",
-            showlegend=False,
-            margin=dict(l=15, r=15, t=60, b=15)
+            showlegend=False
         )
 
-        st.plotly_chart(
-            fig,
-            width="stretch"
-        )
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
+        show_error("Unable to load hotels.", e)
 
-        show_error("Unable to load hotel information.", e)
 
-
-# ============================================================
+# =========================================================
 # 9. ROOM MANAGEMENT
-# ============================================================
+# =========================================================
 
 elif page == "Room Management":
 
     page_header(
         "Room Management",
-        "Explore room inventory, room categories and base prices.",
+        "Explore room inventory, categories and base prices.",
         "🛏️"
     )
 
@@ -593,8 +611,7 @@ elif page == "Room Management":
                 r.base_price,
                 r.room_status
             FROM rooms r
-            JOIN hotels h
-                ON r.hotel_id = h.hotel_id
+            JOIN hotels h ON r.hotel_id = h.hotel_id
             ORDER BY h.hotel_name, r.room_number
         """)
 
@@ -608,37 +625,37 @@ elif page == "Room Management":
                 df["city"].dropna().unique().tolist()
             )
 
-            selected_city = st.selectbox(
-                "Filter by City",
+            city_filter = st.selectbox(
+                "Choose City",
                 cities
             )
 
         with col2:
 
-            room_categories = ["All Room Types"] + sorted(
+            types = ["All Room Types"] + sorted(
                 df["room_type"].dropna().unique().tolist()
             )
 
-            selected_type = st.selectbox(
-                "Filter by Room Type",
-                room_categories
+            type_filter = st.selectbox(
+                "Choose Room Type",
+                types
             )
 
-        filtered_df = df.copy()
+        filtered = df.copy()
 
-        if selected_city != "All Cities":
-            filtered_df = filtered_df[
-                filtered_df["city"] == selected_city
+        if city_filter != "All Cities":
+            filtered = filtered[
+                filtered["city"] == city_filter
             ]
 
-        if selected_type != "All Room Types":
-            filtered_df = filtered_df[
-                filtered_df["room_type"] == selected_type
+        if type_filter != "All Room Types":
+            filtered = filtered[
+                filtered["room_type"] == type_filter
             ]
 
         st.dataframe(
-            filtered_df,
-            width="stretch",
+            filtered,
+            use_container_width=True,
             hide_index=True
         )
 
@@ -647,7 +664,7 @@ elif page == "Room Management":
         st.subheader("Room Type Distribution")
 
         room_types = (
-            filtered_df.groupby("room_type")
+            filtered.groupby("room_type")
             .size()
             .reset_index(name="total_rooms")
         )
@@ -656,96 +673,263 @@ elif page == "Room Management":
             room_types,
             names="room_type",
             values="total_rooms",
-            hole=0.45,
-            title="Room Categories"
+            hole=0.45
         )
 
-        st.plotly_chart(
-            fig,
-            width="stretch"
-        )
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
+        show_error("Unable to load rooms.", e)
 
-        show_error("Unable to load room information.", e)
 
-
-# ============================================================
+# =========================================================
 # 10. CUSTOMER MANAGEMENT
-# ============================================================
+# =========================================================
 
 elif page == "Customer Management":
 
     page_header(
         "Customer Management",
-        "View customer information and registered accounts.",
+        "Select a hotel to view its customers, search records "
+        "and register new customers.",
         "👥"
     )
 
     try:
 
-        df = load_data("""
-            SELECT
-                customer_id,
-                customer_name,
-                email,
-                phone
-            FROM customers
-            ORDER BY customer_id DESC
+        # Get hotels for the filter
+        hotels_df = load_data("""
+            SELECT hotel_id, hotel_name, city
+            FROM hotels
+            ORDER BY hotel_name
         """)
 
-        st.metric("Registered Customers", len(df))
+        # Hotel selection
+        st.subheader("Choose Hotel")
+
+        hotel_options = {
+            f"{row.hotel_name} — {row.city}": int(row.hotel_id)
+            for row in hotels_df.itertuples()
+        }
+
+        hotel_labels = ["All Hotels"] + list(hotel_options.keys())
+
+        selected_hotel = st.selectbox(
+            "Select Hotel to View Customers",
+            hotel_labels,
+            key="customer_hotel_filter"
+        )
+
+        if selected_hotel == "All Hotels":
+            selected_hotel_id = None
+        else:
+            selected_hotel_id = hotel_options[selected_hotel]
+
+        # Get customers
+        if selected_hotel_id is None:
+
+            customers_df = load_data("""
+                SELECT
+                    customer_id,
+                    customer_name,
+                    email,
+                    phone
+                FROM customers
+                ORDER BY customer_id DESC
+            """)
+
+        else:
+
+            customers_df = load_data("""
+                SELECT DISTINCT
+                    c.customer_id,
+                    c.customer_name,
+                    c.email,
+                    c.phone
+                FROM customers c
+                JOIN bookings b
+                    ON c.customer_id = b.customer_id
+                JOIN rooms r
+                    ON b.room_id = r.room_id
+                WHERE r.hotel_id = :hotel_id
+                ORDER BY c.customer_id DESC
+            """, {
+                "hotel_id": selected_hotel_id
+            })
+
+        # Customer metrics
+        st.divider()
+
+        st.subheader("Customer Overview")
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric(
+                "Customers Displayed",
+                len(customers_df)
+            )
+
+        with col2:
+            st.metric(
+                "Registered Customers",
+                int(
+                    load_data("""
+                        SELECT COUNT(*) AS total
+                        FROM customers
+                    """).iloc[0]["total"]
+                )
+            )
+
+        # Search
+        st.divider()
+
+        st.subheader("Customer Records")
 
         search = st.text_input(
             "Search Customer",
-            placeholder="Enter customer name or email..."
+            placeholder="Search by name or email..."
         )
+
+        filtered_customers = customers_df.copy()
 
         if search:
 
             mask = (
-                df["customer_name"].str.contains(
+                filtered_customers["customer_name"].str.contains(
                     search,
                     case=False,
                     na=False
                 )
                 |
-                df["email"].str.contains(
+                filtered_customers["email"].str.contains(
                     search,
                     case=False,
                     na=False
                 )
             )
 
-            df = df[mask]
+            filtered_customers = filtered_customers[mask]
 
-        st.dataframe(
-            df,
-            width="stretch",
-            hide_index=True
-        )
+        if filtered_customers.empty:
+            st.info(
+                "No customers found for this hotel. "
+                "Customers appear here after making a booking."
+            )
+
+        else:
+
+            st.dataframe(
+                filtered_customers,
+                use_container_width=True,
+                hide_index=True
+            )
+
+        # Register customer
+        st.divider()
+
+        st.subheader("➕ Register New Customer")
+
+        with st.form("new_customer_form"):
+
+            name = st.text_input(
+                "Customer Name",
+                placeholder="Enter full name"
+            )
+
+            email = st.text_input(
+                "Email Address",
+                placeholder="example@email.com"
+            )
+
+            phone = st.text_input(
+                "Phone Number",
+                placeholder="Enter phone number"
+            )
+
+            register = st.form_submit_button(
+                "Register Customer",
+                use_container_width=True,
+                type="primary"
+            )
+
+        if register:
+
+            if not name.strip():
+                st.error("Enter customer name.")
+
+            elif not re.match(
+                r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+                email.strip()
+            ):
+                st.error("Enter a valid email address.")
+
+            else:
+
+                try:
+
+                    with get_engine().begin() as connection:
+
+                        result = connection.execute(
+                            text("""
+                                INSERT INTO customers (
+                                    customer_name,
+                                    email,
+                                    phone
+                                )
+                                VALUES (
+                                    :name,
+                                    :email,
+                                    :phone
+                                )
+                                ON CONFLICT (email)
+                                DO NOTHING
+                                RETURNING customer_id
+                            """),
+                            {
+                                "name": name.strip(),
+                                "email": email.strip().lower(),
+                                "phone": phone.strip() or None
+                            }
+                        )
+
+                        new_customer_id = result.scalar_one_or_none()
+
+                    if new_customer_id is None:
+
+                        st.warning(
+                            "This email address is already registered."
+                        )
+
+                    else:
+
+                        st.success(
+                            f"Customer registered successfully! "
+                            f"Customer ID: {new_customer_id}"
+                        )
+
+                        st.rerun()
+
+                except Exception as e:
+                    show_error("Customer registration failed.", e)
 
     except Exception as e:
+        show_error("Unable to load customer management.", e)
 
-        show_error("Unable to load customer information.", e)
 
-
-# ============================================================
+# =========================================================
 # 11. BOOKING MANAGEMENT
-# ============================================================
+# =========================================================
 
 elif page == "Booking Management":
 
     page_header(
         "Booking Management",
-        "Create reservations and manage hotel booking records.",
+        "Create reservations and manage hotel bookings.",
         "📅"
     )
 
-    # --------------------------------------------------------
-    # EXISTING BOOKINGS
-    # --------------------------------------------------------
-
+    # Existing bookings
     st.subheader("Booking Overview")
 
     try:
@@ -763,12 +947,9 @@ elif page == "Booking Management":
                 b.total_price,
                 b.status
             FROM bookings b
-            JOIN customers c
-                ON b.customer_id = c.customer_id
-            JOIN rooms r
-                ON b.room_id = r.room_id
-            JOIN hotels h
-                ON r.hotel_id = h.hotel_id
+            JOIN customers c ON b.customer_id = c.customer_id
+            JOIN rooms r ON b.room_id = r.room_id
+            JOIN hotels h ON r.hotel_id = h.hotel_id
             ORDER BY b.booking_id DESC
         """)
 
@@ -793,77 +974,55 @@ elif page == "Booking Management":
                 )
             )
 
-        if bookings_df.empty:
-            st.info("No bookings available.")
-
-        else:
-
-            st.dataframe(
-                bookings_df,
-                width="stretch",
-                hide_index=True
-            )
+        st.dataframe(
+            bookings_df,
+            use_container_width=True,
+            hide_index=True
+        )
 
     except Exception as e:
-
-        show_error("Unable to load existing bookings.", e)
+        show_error("Unable to load bookings.", e)
 
 
     st.divider()
 
-    # --------------------------------------------------------
-    # NEW BOOKING
-    # --------------------------------------------------------
-
     st.subheader("Create a New Booking")
-
-    st.markdown(
-        "Complete the following steps to reserve a hotel room."
-    )
 
     try:
 
         hotels_df = load_data("""
-            SELECT
-                hotel_id,
-                hotel_name,
-                city
+            SELECT hotel_id, hotel_name, city
             FROM hotels
             ORDER BY hotel_name
         """)
 
         if hotels_df.empty:
 
-            st.warning("No hotels are registered.")
+            st.warning("No hotels available.")
 
         else:
 
-            # Step 1: Hotel selection
-            st.markdown("#### 1. Choose Hotel")
-
+            # Hotel
             hotel_options = {
-                f"{row.hotel_name} — {row.city}":
-                    int(row.hotel_id)
+                f"{row.hotel_name} — {row.city}": int(row.hotel_id)
                 for row in hotels_df.itertuples()
             }
 
             selected_hotel = st.selectbox(
-                "Select Property",
+                "Choose Hotel",
                 list(hotel_options.keys()),
                 key="booking_hotel"
             )
 
             hotel_id = hotel_options[selected_hotel]
 
-            # Step 2: Dates
-            st.markdown("#### 2. Choose Booking Dates")
-
+            # Dates
             date_col1, date_col2 = st.columns(2)
 
             with date_col1:
 
                 check_in = st.date_input(
-                    "Check-in Date",
+                    "Check-in",
                     value=date.today(),
                     min_value=date.today(),
                     key="booking_checkin"
@@ -872,22 +1031,20 @@ elif page == "Booking Management":
             with date_col2:
 
                 check_out = st.date_input(
-                    "Check-out Date",
+                    "Check-out",
                     value=date.today() + timedelta(days=1),
                     min_value=date.today() + timedelta(days=1),
                     key="booking_checkout"
                 )
 
-            # Step 3: Search available rooms
-            st.markdown("#### 3. Available Rooms")
-
-            available_rooms = pd.DataFrame()
-
+            # Search available rooms
             if check_out <= check_in:
 
                 st.warning(
                     "Check-out must be after check-in."
                 )
+
+                available_rooms = pd.DataFrame()
 
             else:
 
@@ -899,7 +1056,6 @@ elif page == "Booking Management":
                         r.capacity,
                         r.base_price
                     FROM rooms r
-
                     WHERE r.hotel_id = :hotel_id
 
                     AND NOT EXISTS (
@@ -918,14 +1074,15 @@ elif page == "Booking Management":
                     "check_out": check_out
                 })
 
-            if check_out > check_in and available_rooms.empty:
+            st.subheader("Available Rooms")
+
+            if available_rooms.empty:
 
                 st.warning(
-                    "No rooms are available for these dates. "
-                    "Try another date or hotel."
+                    "No rooms available for these dates."
                 )
 
-            elif not available_rooms.empty:
+            else:
 
                 st.success(
                     f"{len(available_rooms)} room(s) available."
@@ -944,13 +1101,12 @@ elif page == "Booking Management":
 
                     room_options[label] = {
                         "room_id": int(row.room_id),
-                        "base_price": float(row.base_price),
                         "room_number": row.room_number,
-                        "room_type": row.room_type
+                        "base_price": float(row.base_price)
                     }
 
                 selected_room = st.selectbox(
-                    "Select Available Room",
+                    "Choose Room",
                     list(room_options.keys()),
                     key="booking_room"
                 )
@@ -963,99 +1119,81 @@ elif page == "Booking Management":
                     room_details["base_price"] * nights
                 )
 
-                # Booking summary
-                st.markdown("#### Booking Summary")
+                # Summary
+                st.divider()
 
-                sum_col1, sum_col2, sum_col3 = st.columns(3)
+                st.subheader("Booking Summary")
 
-                with sum_col1:
-                    st.metric("Room", room_details["room_number"])
+                col1, col2, col3 = st.columns(3)
 
-                with sum_col2:
-                    st.metric("Number of Nights", nights)
-
-                with sum_col3:
+                with col1:
                     st.metric(
-                        "Estimated Total",
+                        "Room Number",
+                        room_details["room_number"]
+                    )
+
+                with col2:
+                    st.metric(
+                        "Number of Nights",
+                        nights
+                    )
+
+                with col3:
+                    st.metric(
+                        "Total Amount",
                         f"₹{total_price:,.2f}"
                     )
 
                 st.caption(
-                    "The amount is calculated using the room's "
-                    "base price per night. It is an estimate and "
-                    "does not include separate payment processing."
+                    "The booking amount uses the room's base price "
+                    "per night. No payment is processed by this form."
                 )
 
                 st.divider()
 
-                # Step 4: Customer information
-                st.markdown("#### 4. Customer Information")
+                # Customer details
+                st.subheader("Customer Details")
 
-                with st.form(
-                    "customer_booking_form",
-                    clear_on_submit=False
-                ):
+                with st.form("new_booking_form"):
 
                     customer_name = st.text_input(
-                        "Customer Name",
-                        placeholder="Enter full name"
+                        "Customer Name"
                     )
 
                     customer_email = st.text_input(
-                        "Email Address",
-                        placeholder="example@email.com"
+                        "Email Address"
                     )
 
                     customer_phone = st.text_input(
-                        "Phone Number",
-                        placeholder="Enter phone number"
+                        "Phone Number"
                     )
 
-                    confirm_booking = st.form_submit_button(
-                        "Confirm Reservation",
-                        type="primary",
-                        width="stretch"
+                    submit = st.form_submit_button(
+                        "Confirm Booking",
+                        use_container_width=True,
+                        type="primary"
                     )
 
-                # Step 5: Save booking
-                if confirm_booking:
+                if submit:
 
                     if not customer_name.strip():
 
-                        st.error("Please enter the customer name.")
-
-                    elif not customer_email.strip():
-
-                        st.error("Please enter the email address.")
+                        st.error("Enter customer name.")
 
                     elif not re.match(
                         r"^[^@\s]+@[^@\s]+\.[^@\s]+$",
                         customer_email.strip()
                     ):
 
-                        st.error("Please enter a valid email address.")
-
-                    elif check_out <= check_in:
-
-                        st.error("Please select valid booking dates.")
+                        st.error("Enter a valid email address.")
 
                     else:
 
-                        normalized_email = (
-                            customer_email.strip().lower()
-                        )
-
                         try:
-
-                            # One transaction:
-                            # 1. Lock the room.
-                            # 2. Check overlapping bookings.
-                            # 3. Create/find customer.
-                            # 4. Insert booking.
 
                             with get_engine().begin() as connection:
 
-                                # Lock selected room
+                                # Lock room
                                 room = connection.execute(
                                     text("""
                                         SELECT room_id
@@ -1070,12 +1208,11 @@ elif page == "Booking Management":
                                 ).fetchone()
 
                                 if room is None:
-
                                     raise ValueError(
-                                        "Selected room no longer exists."
+                                        "Selected room does not exist."
                                     )
 
-                                # Final availability check
+                                # Final overlap check
                                 overlap = connection.execute(
                                     text("""
                                         SELECT booking_id
@@ -1095,14 +1232,12 @@ elif page == "Booking Management":
                                 ).fetchone()
 
                                 if overlap:
-
                                     raise ValueError(
                                         "This room has already been "
-                                        "booked for the selected dates. "
-                                        "Please choose another room."
+                                        "booked for these dates."
                                     )
 
-                                # Create customer or reuse existing email
+                                # Create or reuse customer
                                 customer_result = connection.execute(
                                     text("""
                                         INSERT INTO customers (
@@ -1111,7 +1246,7 @@ elif page == "Booking Management":
                                             phone
                                         )
                                         VALUES (
-                                            :customer_name,
+                                            :name,
                                             :email,
                                             :phone
                                         )
@@ -1126,19 +1261,17 @@ elif page == "Booking Management":
                                         RETURNING customer_id
                                     """),
                                     {
-                                        "customer_name":
-                                            customer_name.strip(),
-                                        "email": normalized_email,
+                                        "name": customer_name.strip(),
+                                        "email":
+                                            customer_email.strip().lower(),
                                         "phone":
                                             customer_phone.strip() or None
                                     }
                                 )
 
-                                customer_id = (
-                                    customer_result.scalar_one()
-                                )
+                                customer_id = customer_result.scalar_one()
 
-                                # Insert confirmed booking
+                                # Create booking
                                 booking_result = connection.execute(
                                     text("""
                                         INSERT INTO bookings (
@@ -1169,88 +1302,37 @@ elif page == "Booking Management":
                                     }
                                 )
 
-                                booking_id = (
-                                    booking_result.scalar_one()
-                                )
+                                booking_id = booking_result.scalar_one()
 
-                            # Clear cached data if added later
                             st.success(
-                                "Reservation confirmed successfully!"
-                            )
-
-                            st.markdown(
-                                f"""
-                                <div style="
-                                    background: #ecfdf5;
-                                    border: 1px solid #a7f3d0;
-                                    border-radius: 14px;
-                                    padding: 20px;
-                                    margin-top: 12px;
-                                ">
-                                    <div style="
-                                        color: #047857;
-                                        font-weight: 750;
-                                        font-size: 20px;
-                                    ">
-                                        Booking Confirmed
-                                    </div>
-                                    <div style="
-                                        color: #065f46;
-                                        margin-top: 10px;
-                                    ">
-                                        Booking ID: <b>{booking_id}</b>
-                                    </div>
-                                    <div style="
-                                        color: #065f46;
-                                        margin-top: 5px;
-                                    ">
-                                        Customer: <b>{customer_name}</b>
-                                    </div>
-                                    <div style="
-                                        color: #065f46;
-                                        margin-top: 5px;
-                                    ">
-                                        Total: <b>₹{total_price:,.2f}</b>
-                                    </div>
-                                </div>
-                                """,
-                                unsafe_allow_html=True
+                                f"Booking confirmed! Booking ID: {booking_id}"
                             )
 
                             st.rerun()
 
                         except IntegrityError:
-
                             st.error(
-                                "Booking rejected. PostgreSQL detected "
-                                "a conflicting booking or invalid record."
+                                "PostgreSQL rejected this booking "
+                                "because it conflicts with an existing booking."
                             )
 
                         except Exception as e:
-
-                            show_error(
-                                "Unable to complete the booking.",
-                                e
-                            )
+                            show_error("Booking failed.", e)
 
     except Exception as e:
-
-        show_error(
-            "Unable to load the booking form.",
-            e
-        )
+        show_error("Unable to load booking form.", e)
 
 
-# ============================================================
+# =========================================================
 # 12. DYNAMIC PRICING
-# ============================================================
+# =========================================================
 
 elif page == "Dynamic Pricing":
 
     page_header(
         "Dynamic Pricing Analyzer",
-        "Analyze room prices generated using demand, "
-        "occupancy and weekend adjustments.",
+        "Explore room prices based on occupancy, demand "
+        "and weekend adjustments.",
         "💰"
     )
 
@@ -1268,27 +1350,22 @@ elif page == "Dynamic Pricing":
                 p.effective_date,
                 p.pricing_reason
             FROM pricing_history p
-            JOIN rooms r
-                ON p.room_id = r.room_id
-            JOIN hotels h
-                ON r.hotel_id = h.hotel_id
+            JOIN rooms r ON p.room_id = r.room_id
+            JOIN hotels h ON r.hotel_id = h.hotel_id
             ORDER BY p.effective_date DESC
             LIMIT 5000
         """)
 
         if df.empty:
 
-            st.warning("No dynamic pricing records found.")
+            st.warning("No pricing records found.")
 
         else:
 
             col1, col2 = st.columns(2)
 
             with col1:
-                st.metric(
-                    "Pricing Records",
-                    len(df)
-                )
+                st.metric("Pricing Records", len(df))
 
             with col2:
                 st.metric(
@@ -1298,28 +1375,21 @@ elif page == "Dynamic Pricing":
 
             st.divider()
 
-            selected_hotel = st.selectbox(
-                "Filter by Hotel",
+            hotel_filter = st.selectbox(
+                "Choose Hotel",
                 ["All Hotels"] + sorted(
                     df["hotel_name"].dropna().unique().tolist()
                 )
             )
 
-            if selected_hotel != "All Hotels":
-
-                df = df[
-                    df["hotel_name"] == selected_hotel
-                ]
-
-            st.subheader("Pricing Records")
+            if hotel_filter != "All Hotels":
+                df = df[df["hotel_name"] == hotel_filter]
 
             st.dataframe(
                 df,
-                width="stretch",
+                use_container_width=True,
                 hide_index=True
             )
-
-            st.divider()
 
             st.subheader("Base Price vs Dynamic Price")
 
@@ -1332,42 +1402,29 @@ elif page == "Dynamic Pricing":
                     "room_number",
                     "room_type",
                     "effective_date"
-                ],
-                title="Room Price Comparison"
+                ]
             )
 
-            fig.update_layout(
-                margin=dict(l=15, r=15, t=60, b=15)
-            )
-
-            st.plotly_chart(
-                fig,
-                width="stretch"
-            )
+            st.plotly_chart(fig, use_container_width=True)
 
             st.info(
-                "Pricing records are generated using synthetic "
-                "project data, not live hotel market rates."
+                "These are synthetic project prices, not live hotel rates."
             )
 
     except Exception as e:
-
-        show_error(
-            "Unable to load dynamic pricing records.",
-            e
-        )
+        show_error("Unable to load dynamic pricing.", e)
 
 
-# ============================================================
+# =========================================================
 # 13. ANALYTICS
-# ============================================================
+# =========================================================
 
 elif page == "Analytics":
 
     page_header(
         "Hotel Analytics",
-        "Understand property performance, occupancy, "
-        "booking activity and revenue.",
+        "Analyze property performance, bookings, revenue "
+        "and occupancy.",
         "📊"
     )
 
@@ -1379,11 +1436,9 @@ elif page == "Analytics":
                 h.hotel_name,
                 h.city,
 
-                COUNT(DISTINCT r.room_id)
-                    AS total_rooms,
+                COUNT(DISTINCT r.room_id) AS total_rooms,
 
-                COUNT(DISTINCT b.booking_id)
-                    AS total_bookings,
+                COUNT(DISTINCT b.booking_id) AS total_bookings,
 
                 COUNT(DISTINCT CASE
                     WHEN b.status IN (
@@ -1447,21 +1502,15 @@ elif page == "Analytics":
             ORDER BY total_revenue DESC
         """)
 
-        st.subheader("Property Performance")
+        st.subheader("Hotel Performance")
 
         st.dataframe(
             df,
-            width="stretch",
+            use_container_width=True,
             hide_index=True
         )
 
-        total_bookings = int(
-            df["total_bookings"].sum()
-        )
-
-        total_revenue = float(
-            df["total_revenue"].sum()
-        )
+        total_bookings = int(df["total_bookings"].sum())
 
         total_cancelled = int(
             df["cancelled_bookings"].sum()
@@ -1477,16 +1526,10 @@ elif page == "Analytics":
         col1, col2, col3 = st.columns(3)
 
         with col1:
-            st.metric(
-                "Total Bookings",
-                total_bookings
-            )
+            st.metric("Total Bookings", total_bookings)
 
         with col2:
-            st.metric(
-                "Cancelled Bookings",
-                total_cancelled
-            )
+            st.metric("Cancelled Bookings", total_cancelled)
 
         with col3:
             st.metric(
@@ -1506,25 +1549,19 @@ elif page == "Analytics":
             title="Top 10 Hotels by Revenue"
         )
 
-        st.plotly_chart(
-            fig1,
-            width="stretch"
-        )
+        st.plotly_chart(fig1, use_container_width=True)
 
-        st.subheader("Booking Comparison")
+        st.subheader("Bookings by Hotel")
 
         fig2 = px.bar(
             df.nlargest(10, "total_bookings"),
             x="hotel_name",
             y="total_bookings",
             color="city",
-            title="Top 10 Hotels by Booking Count"
+            title="Top 10 Hotels by Bookings"
         )
 
-        st.plotly_chart(
-            fig2,
-            width="stretch"
-        )
+        st.plotly_chart(fig2, use_container_width=True)
 
         st.subheader("Current Occupancy")
 
@@ -1536,44 +1573,34 @@ elif page == "Analytics":
             x="hotel_name",
             y="current_occupancy_percentage",
             color="city",
-            title="Current Occupancy Percentage"
+            title="Current Hotel Occupancy"
         )
 
         fig3.update_layout(
             yaxis_title="Occupancy (%)"
         )
 
-        st.plotly_chart(
-            fig3,
-            width="stretch"
-        )
+        st.plotly_chart(fig3, use_container_width=True)
 
     except Exception as e:
-
-        show_error(
-            "Unable to load analytics.",
-            e
-        )
+        show_error("Unable to load analytics.", e)
 
 
-# ============================================================
+# =========================================================
 # 14. FOOTER
-# ============================================================
+# =========================================================
 
-st.markdown(
-    """
-    <div style="
-        text-align: center;
-        padding: 25px 10px 10px 10px;
-        color: #8090a8;
-        font-size: 12px;
-        border-top: 1px solid #e3eaf4;
-        margin-top: 35px;
-    ">
-        Hotel Multi-Property Booking & Dynamic Pricing Analyzer
-        <br>
-        Built with Python · PostgreSQL · SQLAlchemy · Streamlit
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("""
+<div style="
+    text-align: center;
+    padding: 25px 10px 10px 10px;
+    color: #52647e;
+    font-size: 13px;
+    border-top: 1px solid #dce5f1;
+    margin-top: 35px;
+">
+    Hotel Multi-Property Booking & Dynamic Pricing Analyzer
+    <br>
+    Python | PostgreSQL | SQLAlchemy | Streamlit
+</div>
+""", unsafe_allow_html=True)
