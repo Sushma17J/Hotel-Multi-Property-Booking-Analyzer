@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -20,48 +21,95 @@ st.set_page_config(
 
 
 # ============================================================
-# 2. CUSTOM CSS
+# 2. CUSTOM CSS - MODERN UI AND DARK NAVIGATION
 # ============================================================
 
 st.markdown("""
 <style>
 
+/* Main application */
 .stApp {
-    background-color: #f4f7fb;
+    background-color: #f3f6fc;
     color: #172033;
 }
 
 [data-testid="stHeader"] {
-    background-color: #f4f7fb;
+    background-color: #f3f6fc;
 }
 
+/* Sidebar background */
 [data-testid="stSidebar"] {
-    background-color: #14213d;
+    background-color: #101d35 !important;
 }
 
-[data-testid="stSidebar"] * {
+[data-testid="stSidebar"] > div:first-child {
+    background-color: #101d35 !important;
+}
+
+/* Sidebar text */
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p,
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] span {
     color: #ffffff !important;
 }
 
+/* Navigation spacing */
+[data-testid="stSidebar"] .stRadio > div {
+    gap: 10px;
+}
+
+/* Navigation options */
 [data-testid="stSidebar"] .stRadio label {
+    background-color: #1c2d4b;
+    color: #ffffff !important;
+    padding: 12px 14px;
+    border-radius: 9px;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
+    border: 1px solid #304361;
+    transition: 0.2s ease;
 }
 
-h1, h2, h3, h4, p, label {
-    color: #172033;
+/* Navigation hover */
+[data-testid="stSidebar"] .stRadio label:hover {
+    background-color: #29466e;
+    border-color: #60a5fa;
 }
 
+/* Selected navigation option */
+[data-testid="stSidebar"] .stRadio label:has(input:checked) {
+    background-color: #2563eb;
+    border: 1px solid #60a5fa;
+    color: #ffffff !important;
+}
+
+/* Radio controls */
+[data-testid="stSidebar"] .stRadio label div {
+    color: #ffffff !important;
+}
+
+/* Sidebar divider */
+[data-testid="stSidebar"] hr {
+    border-color: #40516d;
+}
+
+/* Main headings */
+h1, h2, h3, h4 {
+    color: #14213d !important;
+}
+
+/* Main text */
 .stMarkdown p {
     color: #26344d;
 }
 
+/* Metric cards */
 [data-testid="stMetric"] {
     background-color: #ffffff;
-    border: 1px solid #e1e8f0;
+    border: 1px solid #dce5f1;
     padding: 18px;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.04);
 }
 
 [data-testid="stMetricLabel"] {
@@ -72,40 +120,35 @@ h1, h2, h3, h4, p, label {
     color: #14213d !important;
 }
 
-.stButton > button {
-    background-color: #2563eb;
-    color: white;
-    border-radius: 8px;
-    border: none;
-    padding: 8px 18px;
-    font-weight: 600;
-}
-
-.stButton > button:hover {
-    background-color: #1d4ed8;
-    color: white;
-}
-
+/* Buttons */
+.stButton > button,
 .stFormSubmitButton > button {
     background-color: #2563eb;
-    color: white;
+    color: #ffffff !important;
+    border: none;
     border-radius: 8px;
     font-weight: 600;
+    padding: 8px 18px;
 }
 
+.stButton > button:hover,
+.stFormSubmitButton > button:hover {
+    background-color: #1d4ed8;
+    color: #ffffff !important;
+}
+
+/* Input text */
 input, textarea {
     color: #172033 !important;
 }
 
-[data-baseweb="select"] {
-    color: #172033 !important;
-}
-
+/* Tables */
 [data-testid="stDataFrame"] {
     background-color: #ffffff;
     border-radius: 10px;
 }
 
+/* Dividers */
 hr {
     border-color: #dce4ef;
 }
@@ -670,7 +713,7 @@ elif page == "Customer Management":
 
         if selected_hotel_id is None:
 
-            customer_query = """
+            customers = read_data("""
                 SELECT
                     customer_id,
                     customer_name,
@@ -678,13 +721,12 @@ elif page == "Customer Management":
                     phone
                 FROM customers
                 ORDER BY customer_id DESC
-            """
-
-            customers = read_data(customer_query)
+            """)
 
         else:
 
-            customer_query = """
+            customers = read_data(
+                """
                 SELECT DISTINCT
                     c.customer_id,
                     c.customer_name,
@@ -697,10 +739,7 @@ elif page == "Customer Management":
                     ON b.room_id = r.room_id
                 WHERE r.hotel_id = :hotel_id
                 ORDER BY c.customer_id DESC
-            """
-
-            customers = read_data(
-                customer_query,
+                """,
                 {"hotel_id": selected_hotel_id}
             )
 
@@ -866,15 +905,8 @@ elif page == "Booking Management":
         confirmed_count = 0
         cancelled_count = 0
 
-    col2.metric(
-        "Confirmed",
-        int(confirmed_count)
-    )
-
-    col3.metric(
-        "Cancelled",
-        int(cancelled_count)
-    )
+    col2.metric("Confirmed", int(confirmed_count))
+    col3.metric("Cancelled", int(cancelled_count))
 
     st.markdown("---")
 
@@ -1044,7 +1076,7 @@ elif page == "Booking Management":
 
                             with engine.begin() as connection:
 
-                                # Lock the selected room row.
+                                # Lock room row
                                 room_check = connection.execute(
                                     text("""
                                         SELECT room_id, base_price
@@ -1065,7 +1097,7 @@ elif page == "Booking Management":
                                         "Selected room no longer exists."
                                     )
 
-                                # Recheck availability inside transaction.
+                                # Recheck overlapping bookings
                                 overlap = connection.execute(
                                     text("""
                                         SELECT booking_id
@@ -1100,7 +1132,7 @@ elif page == "Booking Management":
                                         "for the selected dates. Please choose another room."
                                     )
 
-                                # Find existing customer or register new one.
+                                # Find or register customer
                                 customer_id = connection.execute(
                                     text("""
                                         INSERT INTO customers (
@@ -1128,13 +1160,13 @@ elif page == "Booking Management":
                                     }
                                 ).scalar_one()
 
-                                # Calculate amount using current base price.
+                                # Calculate booking price
                                 final_price = (
                                     float(room_check["base_price"])
                                     * nights
                                 )
 
-                                # Insert booking.
+                                # Insert confirmed booking
                                 booking_id = connection.execute(
                                     text("""
                                         INSERT INTO bookings (
@@ -1355,31 +1387,22 @@ elif page == "Dynamic Pricing":
 
 
 # ============================================================
-# 12. ANALYTICS
+# 12. ANALYTICS - NO REVENUE
 # ============================================================
 
 elif page == "Analytics":
 
     page_header(
         "📊 Hotel Analytics",
-        "Explore booking trends, hotel performance, revenue and occupancy insights."
+        "Analyze hotel performance, booking trends and current room occupancy."
     )
 
+    # Booking analysis
     analytics = read_data("""
         SELECT
             h.hotel_name,
             h.city,
-            COUNT(b.booking_id) AS total_bookings,
-            COALESCE(
-                SUM(
-                    CASE
-                        WHEN b.status <> 'cancelled'
-                        THEN b.total_price
-                        ELSE 0
-                    END
-                ),
-                0
-            ) AS total_revenue
+            COUNT(b.booking_id) AS total_bookings
         FROM hotels h
         LEFT JOIN rooms r
             ON h.hotel_id = r.hotel_id
@@ -1389,6 +1412,7 @@ elif page == "Analytics":
         ORDER BY total_bookings DESC
     """)
 
+    # Total rooms per hotel
     room_counts = read_data("""
         SELECT
             h.hotel_name,
@@ -1399,6 +1423,7 @@ elif page == "Analytics":
         GROUP BY h.hotel_id, h.hotel_name
     """)
 
+    # Rooms occupied today
     occupancy = read_data("""
         SELECT
             h.hotel_name,
@@ -1410,8 +1435,7 @@ elif page == "Analytics":
             ON r.room_id = b.room_id
             AND b.status IN (
                 'confirmed',
-                'checked_in',
-                'checked_out'
+                'checked_in'
             )
             AND CURRENT_DATE >= b.check_in
             AND CURRENT_DATE < b.check_out
@@ -1420,30 +1444,28 @@ elif page == "Analytics":
 
     if not analytics.empty:
 
-        total_revenue = analytics["total_revenue"].sum()
-
-        total_bookings = analytics["total_bookings"].sum()
-
+        # Summary metrics
         col1, col2, col3 = st.columns(3)
 
         col1.metric(
-            "Total Revenue",
-            format_currency(total_revenue)
+            "Total Bookings",
+            int(analytics["total_bookings"].sum())
         )
 
         col2.metric(
-            "Total Bookings",
-            int(total_bookings)
-        )
-
-        col3.metric(
             "Hotels Analyzed",
             len(analytics)
         )
 
+        col3.metric(
+            "Cities Covered",
+            analytics["city"].nunique()
+        )
+
         st.markdown("---")
 
-        st.subheader("Hotel Performance")
+        # Booking performance
+        st.subheader("🏨 Hotel Booking Performance")
 
         st.dataframe(
             analytics,
@@ -1451,25 +1473,8 @@ elif page == "Analytics":
             hide_index=True
         )
 
-        st.subheader("Revenue by Hotel")
-
-        fig = px.bar(
-            analytics.sort_values(
-                "total_revenue",
-                ascending=False
-            ),
-            x="hotel_name",
-            y="total_revenue",
-            color="city",
-            title="Revenue Distribution by Hotel"
-        )
-
-        st.plotly_chart(
-            fig,
-            use_container_width=True
-        )
-
-        st.subheader("Bookings by Hotel")
+        # Booking chart
+        st.subheader("📅 Bookings by Hotel")
 
         fig = px.bar(
             analytics.sort_values(
@@ -1479,7 +1484,12 @@ elif page == "Analytics":
             x="hotel_name",
             y="total_bookings",
             color="city",
-            title="Booking Distribution by Hotel"
+            title="Booking Distribution Across Hotels",
+            labels={
+                "hotel_name": "Hotel",
+                "total_bookings": "Number of Bookings",
+                "city": "City"
+            }
         )
 
         st.plotly_chart(
@@ -1487,7 +1497,10 @@ elif page == "Analytics":
             use_container_width=True
         )
 
-        st.subheader("Current Occupancy by Hotel")
+        st.markdown("---")
+
+        # Occupancy calculation
+        st.subheader("🛏️ Current Room Occupancy")
 
         occupancy_report = room_counts.merge(
             occupancy,
@@ -1505,28 +1518,42 @@ elif page == "Analytics":
             * 100
         ).fillna(0)
 
+        occupancy_report["occupancy_percentage"] = (
+            occupancy_report["occupancy_percentage"].round(2)
+        )
+
         st.dataframe(
             occupancy_report,
             use_container_width=True,
             hide_index=True
         )
 
+        # Occupancy chart
         fig = px.bar(
             occupancy_report,
             x="hotel_name",
             y="occupancy_percentage",
             color="hotel_name",
-            title="Current Room Occupancy (%)"
+            title="Current Occupancy Percentage by Hotel",
+            labels={
+                "hotel_name": "Hotel",
+                "occupancy_percentage": "Occupancy (%)"
+            }
         )
 
         fig.update_layout(
-            yaxis_title="Occupancy Percentage",
-            yaxis_range=[0, 100]
+            yaxis_title="Occupancy (%)",
+            yaxis_range=[0, 100],
+            showlegend=False
         )
 
         st.plotly_chart(
             fig,
             use_container_width=True
+        )
+
+        st.caption(
+            "Occupancy represents rooms with active bookings today."
         )
 
     else:
