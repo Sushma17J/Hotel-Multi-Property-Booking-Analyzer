@@ -59,14 +59,23 @@ st.markdown("""
 }
 
 [data-testid="stSidebar"] .stRadio label {
-    background-color: #1c2d4b;
-    color: #ffffff !important;
+    background-color: #ffffff;
+    color: #000000 !important;
     padding: 12px 14px;
     border-radius: 9px;
-    border: 1px solid #354966;
+    border: 1px solid #cbd8e8;
     font-size: 15px;
     font-weight: 600;
     transition: 0.2s ease;
+}
+
+[data-testid="stSidebar"] .stRadio label:hover {
+    background-color: #dbeafe;
+}
+
+[data-testid="stSidebar"] .stRadio label:has(input:checked) {
+    background-color: #bfdbfe;
+    border-color: #2563eb;
 }
 
 /* Navigation hover */
