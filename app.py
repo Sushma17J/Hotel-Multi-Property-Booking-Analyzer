@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -21,27 +20,28 @@ st.set_page_config(
 
 
 # ============================================================
-# 2. CUSTOM CSS - MODERN UI AND DARK NAVIGATION
+# 2. CUSTOM CSS
 # ============================================================
 
 st.markdown("""
 <style>
 
-/* Main application */
+/* Main background */
 .stApp {
-    background-color: #f3f6fc;
+    background-color: #e8eef7;
     color: #172033;
 }
 
+[data-testid="stAppViewContainer"] {
+    background-color: #e8eef7;
+}
+
 [data-testid="stHeader"] {
-    background-color: #f3f6fc;
+    background-color: #e8eef7;
 }
 
-/* Sidebar background */
-[data-testid="stSidebar"] {
-    background-color: #101d35 !important;
-}
-
+/* Sidebar */
+[data-testid="stSidebar"],
 [data-testid="stSidebar"] > div:first-child {
     background-color: #101d35 !important;
 }
@@ -53,20 +53,19 @@ st.markdown("""
     color: #ffffff !important;
 }
 
-/* Navigation spacing */
+/* Sidebar navigation */
 [data-testid="stSidebar"] .stRadio > div {
     gap: 10px;
 }
 
-/* Navigation options */
 [data-testid="stSidebar"] .stRadio label {
     background-color: #1c2d4b;
     color: #ffffff !important;
     padding: 12px 14px;
     border-radius: 9px;
+    border: 1px solid #354966;
     font-size: 15px;
     font-weight: 600;
-    border: 1px solid #304361;
     transition: 0.2s ease;
 }
 
@@ -76,16 +75,10 @@ st.markdown("""
     border-color: #60a5fa;
 }
 
-/* Selected navigation option */
+/* Selected navigation */
 [data-testid="stSidebar"] .stRadio label:has(input:checked) {
     background-color: #2563eb;
     border: 1px solid #60a5fa;
-    color: #ffffff !important;
-}
-
-/* Radio controls */
-[data-testid="stSidebar"] .stRadio label div {
-    color: #ffffff !important;
 }
 
 /* Sidebar divider */
@@ -106,10 +99,10 @@ h1, h2, h3, h4 {
 /* Metric cards */
 [data-testid="stMetric"] {
     background-color: #ffffff;
-    border: 1px solid #dce5f1;
+    border: 1px solid #cbd8e8;
     padding: 18px;
     border-radius: 12px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.04);
+    box-shadow: 0 3px 10px rgba(15, 35, 65, 0.07);
 }
 
 [data-testid="stMetricLabel"] {
@@ -137,8 +130,13 @@ h1, h2, h3, h4 {
     color: #ffffff !important;
 }
 
-/* Input text */
+/* Input fields */
 input, textarea {
+    color: #172033 !important;
+}
+
+/* Select boxes */
+[data-baseweb="select"] {
     color: #172033 !important;
 }
 
@@ -150,7 +148,7 @@ input, textarea {
 
 /* Dividers */
 hr {
-    border-color: #dce4ef;
+    border-color: #cbd8e8;
 }
 
 </style>
@@ -320,7 +318,7 @@ st.sidebar.markdown("""
 <div style="
     font-size: 25px;
     font-weight: 800;
-    color: white;
+    color: #ffffff;
     padding: 12px 0 5px 0;
 ">
     🏨 Hotel Analyzer
@@ -337,7 +335,7 @@ st.sidebar.markdown("""
 
 
 page = st.sidebar.radio(
-    "NAVIGATION",
+    "",
     [
         "Dashboard",
         "Hotel Management",
@@ -346,9 +344,9 @@ page = st.sidebar.radio(
         "Booking Management",
         "Dynamic Pricing",
         "Analytics"
-    ]
+    ],
+    label_visibility="collapsed"
 )
-
 
 st.sidebar.markdown("---")
 
@@ -373,10 +371,12 @@ if page == "Dashboard":
     customers = load_customers()
     bookings = load_bookings()
 
-    total_hotels = len(hotels)
-    total_rooms = len(rooms)
-    total_customers = len(customers)
-    total_bookings = len(bookings)
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric("🏨 Total Hotels", len(hotels))
+    col2.metric("🛏️ Total Rooms", len(rooms))
+    col3.metric("👥 Total Customers", len(customers))
+    col4.metric("📅 Total Bookings", len(bookings))
 
     confirmed = 0
     pending = 0
@@ -389,13 +389,6 @@ if page == "Dashboard":
         confirmed = (statuses == "confirmed").sum()
         pending = (statuses == "pending").sum()
         cancelled = (statuses == "cancelled").sum()
-
-    col1, col2, col3, col4 = st.columns(4)
-
-    col1.metric("🏨 Total Hotels", total_hotels)
-    col2.metric("🛏️ Total Rooms", total_rooms)
-    col3.metric("👥 Total Customers", total_customers)
-    col4.metric("📅 Total Bookings", total_bookings)
 
     st.markdown("---")
 
@@ -501,9 +494,23 @@ elif page == "Hotel Management":
 
     if not hotels.empty:
 
+        star_ratings = pd.to_numeric(
+            hotels["star_rating"],
+            errors="coerce"
+        ).dropna()
+
+        average_rating = (
+            f"{star_ratings.mean():.1f} / 5"
+            if not star_ratings.empty
+            else "Not Available"
+        )
+
         col1, col2, col3 = st.columns(3)
 
-        col1.metric("Total Hotels", len(hotels))
+        col1.metric(
+            "Total Hotels",
+            len(hotels)
+        )
 
         col2.metric(
             "Cities Covered",
@@ -512,7 +519,7 @@ elif page == "Hotel Management":
 
         col3.metric(
             "Average Star Rating",
-            round(hotels["star_rating"].mean(), 1)
+            average_rating
         )
 
         st.markdown("---")
@@ -881,13 +888,6 @@ elif page == "Booking Management":
 
     bookings = load_bookings()
 
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric(
-        "Total Bookings",
-        len(bookings)
-    )
-
     if not bookings.empty:
 
         confirmed_count = (
@@ -905,6 +905,9 @@ elif page == "Booking Management":
         confirmed_count = 0
         cancelled_count = 0
 
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Bookings", len(bookings))
     col2.metric("Confirmed", int(confirmed_count))
     col3.metric("Cancelled", int(cancelled_count))
 
@@ -954,13 +957,13 @@ elif page == "Booking Management":
                 key="booking_checkout"
             )
 
+        available_rooms = pd.DataFrame()
+
         if check_out <= check_in:
 
             st.error(
                 "Check-out date must be after check-in date."
             )
-
-            available_rooms = pd.DataFrame()
 
         else:
 
@@ -1018,19 +1021,17 @@ elif page == "Booking Management":
                 list(room_options.keys())
             )
 
-            selected_room = room_options[
-                selected_room_label
-            ]
+            selected_room = room_options[selected_room_label]
 
             nights = (check_out - check_in).days
 
-            total_price = (
+            estimated_price = (
                 float(selected_room["base_price"]) * nights
             )
 
             st.info(
                 f"Stay: {nights} night(s) | "
-                f"Estimated booking amount: {format_currency(total_price)}"
+                f"Estimated booking amount: {format_currency(estimated_price)}"
             )
 
             st.markdown("---")
@@ -1076,7 +1077,7 @@ elif page == "Booking Management":
 
                             with engine.begin() as connection:
 
-                                # Lock room row
+                                # Lock the selected room row.
                                 room_check = connection.execute(
                                     text("""
                                         SELECT room_id, base_price
@@ -1097,7 +1098,7 @@ elif page == "Booking Management":
                                         "Selected room no longer exists."
                                     )
 
-                                # Recheck overlapping bookings
+                                # Recheck overlapping bookings.
                                 overlap = connection.execute(
                                     text("""
                                         SELECT booking_id
@@ -1132,7 +1133,7 @@ elif page == "Booking Management":
                                         "for the selected dates. Please choose another room."
                                     )
 
-                                # Find or register customer
+                                # Find existing customer or create a new one.
                                 customer_id = connection.execute(
                                     text("""
                                         INSERT INTO customers (
@@ -1160,13 +1161,13 @@ elif page == "Booking Management":
                                     }
                                 ).scalar_one()
 
-                                # Calculate booking price
+                                # Calculate final price.
                                 final_price = (
                                     float(room_check["base_price"])
                                     * nights
                                 )
 
-                                # Insert confirmed booking
+                                # Insert booking.
                                 booking_id = connection.execute(
                                     text("""
                                         INSERT INTO bookings (
@@ -1223,13 +1224,11 @@ elif page == "Booking Management":
                                 f"Booking failed: {e}"
                             )
 
-        else:
+        elif check_out > check_in:
 
-            if check_out > check_in:
-
-                st.warning(
-                    "No rooms are available for these dates at this hotel."
-                )
+            st.warning(
+                "No rooms are available for these dates at this hotel."
+            )
 
     st.markdown("---")
 
@@ -1464,7 +1463,7 @@ elif page == "Analytics":
 
         st.markdown("---")
 
-        # Booking performance
+        # Hotel booking performance
         st.subheader("🏨 Hotel Booking Performance")
 
         st.dataframe(
@@ -1571,7 +1570,7 @@ st.markdown(
     """
     <div style="
         text-align: center;
-        color: #64748b;
+        color: #52627a;
         font-size: 12px;
         padding: 10px;
     ">
